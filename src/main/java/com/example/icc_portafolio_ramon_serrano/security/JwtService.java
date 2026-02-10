@@ -4,11 +4,12 @@ import com.example.icc_portafolio_ramon_serrano.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import org.springframework.stereotype.Service;
@@ -48,21 +49,29 @@ public class JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+        return Jwts.parser()
+            .setSigningKey(getSigningKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+            .parseClaimsJws(token)
+            .getBody();
     }
 
     private Key getSigningKey() {
         String secret = jwtProperties.getSecret();
-        byte[] keyBytes;
-        if (secret != null && secret.length() >= 32) {
-            keyBytes = secret.getBytes(StandardCharsets.UTF_8);
-        } else {
-            keyBytes = Decoders.BASE64.decode(Decoders.BASE64.encode(secret.getBytes(StandardCharsets.UTF_8)));
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("JWT secret is not configured");
         }
-        return Keys.hmacShaKeyFor(keyBytes);
+
+        byte[] rawBytes;
+        try {
+            rawBytes = Base64.getDecoder().decode(secret);
+        } catch (IllegalArgumentException ex) {
+            rawBytes = secret.getBytes(StandardCharsets.UTF_8);
+        }
+
+        if (rawBytes.length < 32) {
+            rawBytes = Arrays.copyOf(rawBytes, 32);
+        }
+        return Keys.hmacShaKeyFor(rawBytes);
     }
 }
