@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: icc-portafolio-ramon-serrano
+  datasource:
+    url: jdbc:postgresql://${PGHOST:localhost}:5432/${PGDATABASE:icc_portafolio}?sslmode=${PGSSLMODE:require}&channelBinding=${PGCHANNELBINDING:require}
+    username: ${PGUSER:postgres}
+    password: ${PGPASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-change-me}
+    expiration-minutes: 120
+  notifications:
+    reminder-minutes-before: 30
+  cors:
+    allowed-origins: http://localhost:4200
+
+springdoc:
+  api-docs:
+    path: /api/docs
+  swagger-ui:
+    path: /swagger-ui.html
